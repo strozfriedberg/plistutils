@@ -20,15 +20,19 @@ the Python data structure representation of that file and all embedded plists.
 Beginning in macOS System 7, users could create an "alias" file, which was a dynamically updated link to a
 target file, similar in nature to LNK files in Windows. macOS would automatically resolve the location of
 the file based on a number of stored attributes. Mac OS X made embedding Alias data structures within plists
-regular behavior, and the Alias structure has undergone several revisions. The most commonly seen at the time
-of this publishing are versions 2 and 3.
+regular behavior, also for the purpose of dynamically linking to a target. The Alias structure has undergone
+several revisions; the most commonly seen at the time of this publishing are versions 2 and 3, depending on
+the application and macOS versions.
 
 Alias data structures have been deprecated, but you will often still find them on machines that have been
 upgraded or that are using older versions of application software. For example, if you install Microsoft
 Office 2011 on macOS 10.13 High Sierra, the plists created by Office will contain Alias version 2 structures,
-while Office 2016 plists will contain a mixture of Alias version 3 and Bookmark structures.
+while Office 2016 plists will contain a mixture of Alias version 3 and Bookmark structures. Additionally,
+Alias data is generally not updated in macOS system plists to newer versions or to Bookmark data unless
+the target is updated in the plist (by moving or deleting the plist item, such as in
+`com.apple.sidebarlists.plist`).
 
-Both versions 2 and 3 begin with a fixed header struct (containing different fields depending on version),
+Both versions 2 and 3 begin with a fixed header structure (containing different fields depending on version),
 followed by a table of fields. Fields are noted by a numerical identifier, and not all fields need be
 present in the table. The table fields are identical in versions 2 and 3.
 
