@@ -3,6 +3,7 @@
 ## About
 
 The `plistutils` library provides a number of convenience functions for dealing with Apple Property List files.
+Our goal is to provide a single, comprehensive Python library for dealing with all aspects of Plist parsing.
 
 plistutils is copyright (c) 2017, Stroz Friedberg, an Aon company.
 
@@ -69,11 +70,13 @@ Michael Lynn provided fantastic research illuminating data stored in Bookmarks, 
 created the Bookmark parser (http://michaellynn.github.io/2015/10/24/apples-bookmarkdata-exposed/).
 
 Patrick Olsen wrote a blog post (http://sysforensics.org/2016/08/mac-alias-data-objects/) which spurred us to take a
-look at the Alias v3 structure and produce an accurate parser.
+look at the Alias v3 structure and produce a fully functional parser.
 
-Wim Lewis and Alastair Houghton have written libraries for Perl and Python, respectively, which parse Alias version 2
-structures, and Mr. Houghton's library also creates/parses Bookmark structures(https://github.com/al45tair/mac_alias).
-We came across these repositories after the majority of the work was completed on Alias version 3 and Bookmark parsing.
+## Other Plist Utility Libraries
+
+Alastair Houghton maintains a Python library which parses and creates Alias version 2 and Bookmark structures
+(https://github.com/al45tair/mac_alias). We came across the `mac_alias` repository after the majority of work was
+completed on Alias version 3 and Bookmark parsing.
 
 CCL Group publishes a binary plist parser which supports extracting NSKeyedArchive data when it contains common object
 types (https://github.com/cclgroupltd/ccl-bplist).
