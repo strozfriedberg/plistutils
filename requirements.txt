@@ -1,1 +1,1 @@
-biplist==1.0.2
+biplist==1.0.3
