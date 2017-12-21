@@ -66,7 +66,7 @@ class PlistParser(object):
     @classmethod
     def _parse(cls, file_obj, plist_type=None):
         def visit(plist):
-            if isinstance(plist, bytes) or isinstance(plist, str):
+            if isinstance(plist, (bytes, str)):
                 if isinstance(plist, str):
                     if plist.startswith(cls._xml_str) or plist.startswith(cls._xml2_str):
                         plist = plist.encode('utf-8')

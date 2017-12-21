@@ -75,3 +75,27 @@ def parse_timestamp(qword, resolution, epoch_shift, mode=decimal.ROUND_HALF_EVEN
 
     # convert to datetime
     return datetime.utcfromtimestamp(total_microseconds // datetime_resolution).replace(microsecond=total_microseconds % datetime_resolution)
+
+
+def case_insensitive_dict_get(d, key, default=None):
+    """
+    Searches a dict for the first key matching case insensitively. If there is
+    an exact match by case for the key, that match is given preference.
+
+    Args:
+        d: dict to search
+        key: key name to retrieve case-insensitively
+
+    Returns: value or default
+
+    """
+    if not key:
+        return default
+    if key in d:
+        return d[key]
+    if isinstance(key, str):
+        key_lower = key.lower()
+        for k in d:
+            if k.lower() == key_lower:
+                return d[k]
+    return default
