@@ -1,8 +1,10 @@
+from collections import defaultdict
 import logging
 import struct
 from urllib.parse import urljoin
 
 
+from plistutils.alias import AliasParser
 from plistutils.utils import guid_str_from_bytes, interpret_flags, parse_mac_absolute_time
 
 
@@ -34,6 +36,7 @@ class BookmarkParser(object):
     # field_id: ([expected data types], field_name)
     # fields with field_name of None will not be parsed
     FIELDS = {
+        0x1003: ([STRING_TYPE, URL_TYPE], 'url_string'),  # string
         0x1004: ([ARRAY_TYPE], 'path'),  # array of path components
         0x1005: ([ARRAY_TYPE], 'inode_path'),  # array of file IDs
         0x1010: ([BYTES_TYPE], 'resource_props'),  # byte array of props - three 8-byte ints: [0] target flags, [1] flag validity, [2] unknown (always 0)
@@ -58,13 +61,23 @@ class BookmarkParser(object):
         0xd010: ([NUMBER_TYPE], None),  # 'creation_options' flags for CFURLCreateBookmarkData
         0xe003: ([ARRAY_TYPE], None),   # 'url_length' - array
         0xf017: ([STRING_TYPE], 'display_name'),
-        0xf021: ([BYTES_TYPE], None),  # 'effective_flattened_icon_ref' - byte array - Img file?
+        0xf020: ([BYTES_TYPE], None),  # 'effective_icon_data' - icns/icon image byte array
+        0xf021: ([BYTES_TYPE], None),  # 'effective_flattened_icon_ref' - img byte array
+        0xf022: ([BYTES_TYPE], None),  # 'type_binding_data' - dnib byte array
         0xf030: ([NUMBER_TYPE], 'bookmark_creation_time'),  # 'bookmark_creation_time' exp 64-bit float seconds since 1/1/2001 (e.g. b'68CB95EB545DB841')
         0xf080: ([BYTES_TYPE], 'sandbox_rw_extension'),  # semi-colon separated values string (from byte-array)
         0xf081: ([BYTES_TYPE], 'sandbox_ro_extension'),  # semi-colon separated values string (from byte-array)
-        0xfe00: ([BYTES_TYPE], None),  # 'alias_data'
+        0xfe00: ([BYTES_TYPE], 'alias_data'),  # Alias byte array
+        0x800000d0: ([NUMBER_TYPE], None),  # 'nsurl_document_identifier_key' https://developer.apple.com/reference/foundation/nsurldocumentidentifierkey
+        0x80000190: ([NUMBER_TYPE], None),  # 'nsurl_document_identifier_key' https://developer.apple.com/reference/foundation/nsurldocumentidentifierkey
+        0x80000194: ([NUMBER_TYPE], None),  # 'nsurl_document_identifier_key' https://developer.apple.com/reference/foundation/nsurldocumentidentifierkey
         0x800001ac: ([NUMBER_TYPE], None),  # 'nsurl_document_identifier_key' https://developer.apple.com/reference/foundation/nsurldocumentidentifierkey
+        0x800001b0: ([NUMBER_TYPE], None),  # 'nsurl_document_identifier_key' https://developer.apple.com/reference/foundation/nsurldocumentidentifierkey
+        0x800001c0: ([NUMBER_TYPE], None),  # 'nsurl_document_identifier_key' https://developer.apple.com/reference/foundation/nsurldocumentidentifierkey
         0x800001d8: ([NUMBER_TYPE], None),  # 'nsurl_document_identifier_key' https://developer.apple.com/reference/foundation/nsurldocumentidentifierkey
+        0x80000218: ([NUMBER_TYPE], None),  # 'nsurl_document_identifier_key' https://developer.apple.com/reference/foundation/nsurldocumentidentifierkey
+        0x80000278: ([NUMBER_TYPE], None),  # 'nsurl_document_identifier_key' https://developer.apple.com/reference/foundation/nsurldocumentidentifierkey
+        0x8000027c: ([NUMBER_TYPE], None),  # 'nsurl_document_identifier_key' https://developer.apple.com/reference/foundation/nsurldocumentidentifierkey
     }
 
     # https://opensource.apple.com/source/CF/CF-1153.18/CFURLPriv.h.auto.html
@@ -158,6 +171,7 @@ class BookmarkParser(object):
         table_of_contents, toc_count = cls.get_toc(buf, data_offset)
 
         all_data = [{'bookmark_index': idx} for _i in range(toc_count)]
+        embedded = defaultdict(list)
         for toc_entry in table_of_contents:
             cur_toc_entry = all_data[toc_entry['index']]
             if 'toc_depth' not in cur_toc_entry:
@@ -166,7 +180,14 @@ class BookmarkParser(object):
             record_length, record_data_type = cls.RECORD_HEADER.unpack_from(buf, record_offset)
             cls.process_field(fullpath, buf, item_name, data_offset, cur_toc_entry,
                               toc_entry['record_type'], record_offset, record_length, record_data_type)
-        return all_data
+            if 'alias_data' in cur_toc_entry:
+                for alias_record in AliasParser.parse(fullpath, idx, cur_toc_entry.pop('alias_data')):
+                    embedded[toc_entry['index']].append(dict(alias_record, bookmark_index=idx))
+        # yield embedded alias records immediately following parent bookmark entry record
+        for rec_idx, record in enumerate(all_data):
+            yield record
+            for embedded_record in embedded.get(rec_idx, []):
+                yield embedded_record
 
     @classmethod
     def process_field(cls, fullpath, buf, item_name, data_offset, cur_toc_entry,
@@ -186,14 +207,17 @@ class BookmarkParser(object):
             cls.update_record(cur_toc_entry, field_dict)
         else:
             logger.warning(
-                "Unknown bookmark record/data type ({}/{}) in item {} from file {}, please report.", rec_type, record_data_type, item_name, fullpath)
+                "Unknown bookmark record/data type ({}/{}) in item '{}' from file '{}', please report.", rec_type, record_data_type, item_name, fullpath)
 
     @staticmethod
-    def update_record(record, field_dict):
+    def update_record(record, field_dict, warn=True):
         for k, v in field_dict.items():
             if k in record:
-                logger.error(
-                    "Could not update record due to duplicate key in level. Initial value: {}/{}. Attempted update: {}/{}.", k, record[k], k, field_dict[k])
+                if warn:
+                    logger.error(
+                        "Could not update record due to duplicate key in level. Initial value: {}/{}. Attempted update: {}/{}.",
+                        k, record[k], k, field_dict[k]
+                    )
             else:
                 record[k] = v
 
@@ -218,10 +242,9 @@ class BookmarkParser(object):
         rec_count = len(parsed)
         if rec_count == 2:
             return urljoin(parsed[0], parsed[1])
-        else:
-            joined = '/'.join(parsed)
-            logger.warning("Unexpected record count {} in URL array (expected 2): '{}', please report.", rec_count, joined)
-            return joined
+        joined = '/'.join(parsed)
+        logger.warning("Unexpected record count {} in URL array (expected 2): '{}', please report.", rec_count, joined)
+        return joined
 
     @classmethod
     def _parse_record_data_a01(cls, _data, record_length, *args):
@@ -287,7 +310,7 @@ class BookmarkParser(object):
             0x2020: lambda x: {field_name: interpret_flags(struct.unpack_from('<Q', x[:8])[0], cls.VOLUME_PROPERTY_FLAGS)},
             0xf030: lambda x: {field_name: parse_mac_absolute_time(x)},
             0xf080: cls._decode_sandbox_value,
-            0xf081: cls._decode_sandbox_value,
+            0xf081: cls._decode_sandbox_value
         }
         return decoders.get(item_type, lambda x: {field_name: x})(parsed)
 
