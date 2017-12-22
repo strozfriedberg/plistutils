@@ -15,7 +15,6 @@ setup(
 
     # Author details
     author='Stroz Friedberg, an Aon company',
-    author_email='gblack@strozfriedberg.com',
 
     license='BSD 3-clause "New" or "Revised" License',
 
@@ -23,7 +22,7 @@ setup(
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Build Tools',
-        'License :: OSI Approved :: BSD 3-clause',
+        'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
