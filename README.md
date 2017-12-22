@@ -7,13 +7,26 @@ Our goal is to provide a single, comprehensive Python library for dealing with a
 
 plistutils is copyright (c) 2017, Stroz Friedberg, an Aon company.
 
-## Components
+## Components and Usage
 
 ### General Plist Parsing
 
 The `PlistParser` class in `plistparser.py` supports automatic, recursive parsing of binary, XML, and JSON plists.
 If an embedded plist is located within the structure of a plist file, calling `PlistParser.parse()` will return
 the Python data structure representation of that file and all embedded plists.
+
+#### Sample Usage
+```
+from plistutils.plistparser import InvalidPlistException, PlistParser
+
+fullpath = 'target.plist'
+with open(fullpath, rb) as plist_file:
+    try:
+        data = PlistParser.parse(plist_file)
+    except InvalidPlistException:
+        logger.warning("Error parsing plist '{}'", fullpath)
+    ...
+```
 
 ### Alias structure parsing
 
@@ -36,8 +49,23 @@ Both versions 2 and 3 begin with a fixed header structure (containing different 
 followed by a table of fields. Fields are noted by a numerical identifier, and not all fields need be
 present in the table. The table fields are identical in versions 2 and 3.
 
-The `AliasParser` class in `alias.py` provides parsing for Alias versions 2 and 3, and returns a Python
-`dict` containing the parsed fields.
+The `AliasParser` class in `alias.py` provides parsing for Alias versions 2 and 3. `AliasParser.parse()` is
+a generator, and yields Python `dict`s containing the parsed fields. Usually this function will only yield
+a single record, but Alias data can contain an embedded Alias record (which could, theoretically, contain
+another embedded Alias record), in which case it will yield multiple records.
+
+#### Sample Usage
+```
+from plistutils.alias import AliasParser
+from plistutils.plistparser import PlistParser
+
+fullpath = 'target.plist'
+with open(fullpath, rb) as plist_file:
+    data = PlistParser.parse(plist_file)
+    # Iterate parsed plist and pass index/Alias data to parse_bookmark()
+    for alias_record in AliasParser.parse(fullpath, idx, data['Alias']):
+        print(alias_record)
+```
 
 ### Bookmark structure parsing
 
@@ -47,9 +75,23 @@ more extensible structure allowing the creator to use standard data types or to 
 the caller is responsible for storing and interpreting. The detail captured in Bookmarks is often much greater
 than that in Alias data.
 
-The `BookmarkParser` class in `bookmark.py` parses Bookmark data. Note that `BookmarkParser.parse_bookmark()` returns
-a list of parsed items, as a single Bookmark can have multiple entries (usually in the case of a Bookmark referencing
-a file within a DMG or similar circumstance).
+The `BookmarkParser` class in `bookmark.py` parses Bookmark data. Note that `BookmarkParser.parse_bookmark()` is
+a generator which yields multiple parsed records, as a single Bookmark can have multiple entries (usually in the
+case of a Bookmark referencing a file within a DMG or similar circumstance) and also contain embedded Alias
+data (which could, in turn, contain embedded Alias data).
+
+#### Sample Usage
+```
+from plistutils.bookmark import BookmarkParser
+from plistutils.plistparser import PlistParser
+
+fullpath = 'target.plist'
+with open(fullpath, rb) as plist_file:
+    data = PlistParser.parse(plist_file)
+    # Iterate parsed plist and pass index/name/Bookmark data to parse_bookmark()
+    for bookmark_record in BookmarkParser.parse_bookmark(fullpath, idx, name, data['Bookmark']):
+        print(bookmark_record)
+```
 
 ### NSKeyedArchiver parsing
 
@@ -59,6 +101,23 @@ format is meant to be somewhat space-efficient, as multiple objects can point to
 
 The `NSKeyedArchiveParser` in `nskeyedarchiver.py` parses most standard data types, and we intend to improve support
 for complex types in future releases.
+
+#### Sample Usage
+```
+from plistutils.nskeyedarchiver import NSKeyedArchiveParser, NSKeyedArchiveException
+from plistutils.plistparser import PlistParser
+
+fullpath = 'target.plist'
+with open(fullpath, rb) as plist_file:
+    data = PlistParser.parse(plist_file)
+    if NSKeyedArchiveParser.is_known_nskeyedarchive(data, fullpath):
+        nska_parser = NSKeyedArchiveParser(fullpath)
+        try:
+            unarchived_data = nska_parser.parse_archive(data).get('root', {})
+        except NSKeyedArchiveException:
+            return
+        print(unarchived_data)
+```
 
 ### utils.py
 
