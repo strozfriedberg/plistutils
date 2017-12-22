@@ -9,7 +9,7 @@ setup(
     description='Convenience functions for plist files',
     long_description=
     """`plistutils` provides a number of convenience functions for dealing with
-    Apple Property List files. This module is tested with Python 3.5.""",
+Apple Property List files. This module is tested with Python 3.5.""",
 
     url='https://github.com/strozfriedberg/plistutils',
 
