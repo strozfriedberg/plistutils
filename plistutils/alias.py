@@ -135,11 +135,11 @@ class AliasParser(object):
             return
         app_info, record_length, version = cls.HEADER.unpack_from(buf)
         if app_info != b'\x00\x00\x00\x00':
-            logger.warning("Alias data unexpected app info '{}', please report.", app_info)
+            logger.warning(f"Alias data unexpected app info '{app_info}', please report.")
         if record_length != len(buf):
-            logger.warning("Alias data unexpected size in '{}': expected {:,} bytes, got {:,} bytes.", fullpath, record_length, len(buf))
+            logger.warning(f"Alias data unexpected size in '{fullpath}': expected {record_length:,} bytes, got {len(buf):,} bytes.")
         if version not in supported_versions:
-            logger.error("Unsupported Alias version ({}) in '{}', please report.", version, fullpath)
+            logger.error(f"Unsupported Alias version ({version}) in '{fullpath}', please report.")
             return
 
         yield from cls.parse_version(fullpath, idx, buf, cls.HEADER.size, supported_versions[version])
@@ -150,7 +150,7 @@ class AliasParser(object):
         try:
             record = version_struct.parse_as_dict(buf, offset)
         except struct.error:
-            logger.debug("Could not decode alias data in file '{}'.", fullpath)
+            logger.debug(f"Could not decode alias data in file '{fullpath}'.")
             return {}
         cur_offset = offset + version_struct.size
 
@@ -204,9 +204,9 @@ class AliasParser(object):
                 try:
                     record[field_name] = decoder(buf, cur_offset, length)
                 except Exception as e:
-                    logger.debug("Could not decode field '{}' in file '{}': {}.", field_name, fullpath, e)
+                    logger.debug(f"Could not decode field '{field_name}' in file '{fullpath}': {e}.")
             elif field_name is None:
-                logger.warning("Unexpected field tag {} in Alias data for {}, please report.", field_id, fullpath)
+                logger.warning(f"Unexpected field tag {field_id} in Alias data for {fullpath}, please report.")
             cur_offset += length + length % 2
         return cur_offset
 
@@ -252,7 +252,7 @@ class AliasParser(object):
         path = None
         if length % 4 != 0:
             logger.warning(
-                "Unable to parse CNIDs from alias data. Expected multiple of 4 bytes, but got {}. Please report.", length)
+                f"Unable to parse CNIDs from alias data. Expected multiple of 4 bytes, but got {length}. Please report.")
         elif length:
             path = '/'.join([str(x) for x in struct.unpack('>{}I'.format(length // 4), buf[offset:offset + length])])
         return path
