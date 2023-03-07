@@ -24,7 +24,7 @@ with open(fullpath, rb) as plist_file:
     try:
         data = PlistParser.parse(plist_file)
     except InvalidPlistException:
-        logger.warning("Error parsing plist '{}'", fullpath)
+        logger.warning(f"Error parsing plist '{fullpath}'")
     ...
 ```
 

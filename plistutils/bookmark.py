@@ -199,7 +199,7 @@ class BookmarkParser(object):
             general_type = record_data_type & cls.EXPECTED_TYPE_MASK
             if general_type not in expected_data_types + [cls.NULL_TYPE]:  # anything could be NULL
                 logger.error(
-                    "Unexpected data type {:#x} for record type {:#x} ({}) in file '{}', please report.", record_data_type, rec_type, field_name, fullpath)
+                    f"Unexpected data type {record_data_type:#x} for record type {rec_type:#x} ({field_name}) in file '{fullpath}', please report.")
                 return
             record_data_offset = record_offset + cls.RECORD_HEADER.size
             data = buf[record_data_offset: record_data_offset + record_length]
@@ -207,7 +207,7 @@ class BookmarkParser(object):
             cls.update_record(cur_toc_entry, field_dict)
         else:
             logger.warning(
-                "Unknown bookmark record/data type ({}/{}) in item '{}' from file '{}', please report.", rec_type, record_data_type, item_name, fullpath)
+                f"Unknown bookmark record/data type ({rec_type}/{record_data_type}) in item '{item_name}' from file '{fullpath}', please report.")
 
     @staticmethod
     def update_record(record, field_dict, warn=True):
@@ -215,8 +215,7 @@ class BookmarkParser(object):
             if k in record:
                 if warn:
                     logger.error(
-                        "Could not update record due to duplicate key in level. Initial value: {}/{}. Attempted update: {}/{}.",
-                        k, record[k], k, field_dict[k]
+                        f"Could not update record due to duplicate key in level. Initial value: {k}/{record[k]}. Attempted update: {k}/{field_dict[k]}."
                     )
             else:
                 record[k] = v
@@ -243,13 +242,13 @@ class BookmarkParser(object):
         if rec_count == 2:
             return urljoin(parsed[0], parsed[1])
         joined = '/'.join(parsed)
-        logger.warning("Unexpected record count {} in URL array (expected 2): '{}', please report.", rec_count, joined)
+        logger.warning(f"Unexpected record count {rec_count} in URL array (expected 2): '{joined}', please report.")
         return joined
 
     @classmethod
     def _parse_record_data_a01(cls, _data, record_length, *args):
         if record_length != 0:
-            logger.warning("Unexpected data length {} in bookmark data type 0xA01, please report.", record_length)
+            logger.warning(f"Unexpected data length {record_length} in bookmark data type 0xA01, please report.")
         return None
 
     @classmethod

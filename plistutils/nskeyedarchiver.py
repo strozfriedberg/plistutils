@@ -32,7 +32,7 @@ class NSKeyedArchiveParser(object):
                 if version in NSKeyedArchiveParser.KNOWN_VERSIONS:
                     return True
                 else:
-                    logger.error("Unknown NSKeyedArchiver version '{}' in file {}, please report.", version, fullpath)
+                    logger.error(f"Unknown NSKeyedArchiver version '{version}' in file {fullpath}, please report.")
         return False
 
     def parse_archive(self, plist_data):
@@ -51,8 +51,7 @@ class NSKeyedArchiveParser(object):
                     except RecursionError:
                         # failsafe
                         logger.error(
-                            "Could not parse NSKeyedArchive '{}' in top key '{}' due to infinite recursion",
-                            self.fullpath, name)
+                            f"Could not parse NSKeyedArchive '{self.fullpath}' in top key '{name}' due to infinite recursion")
                 else:
                     ret[name] = val
         return ret
@@ -80,7 +79,7 @@ class NSKeyedArchiveParser(object):
         elif isinstance(obj, Data):
             ret = bytes(obj)
         else:
-            logger.warning("Unexpected data type '{}' in '{}', please report.", type(obj).__name__, self.fullpath)
+            logger.warning(f"Unexpected data type '{type(obj).__name__}' in '{self.fullpath}', please report.")
 
         parents.remove(obj_id)
         return ret
@@ -159,9 +158,9 @@ class NSKeyedArchiveParser(object):
             if special_type in ns_value_special_types:
                 return ns_value_special_types[special_type](self, class_name, d, objects_list, parents)
             else:
-                logger.error("Unsupported NSValue special type {} in NSKeyedArchiver data, please report.", special_type)
+                logger.error(f"Unsupported NSValue special type {special_type} in NSKeyedArchiver data, please report.")
         else:  # NSConcreteValue
-            logger.error("Unsupported NSConcreteValue type in NSKeyedArchiver data, please report.", special_type)
+            logger.error("Unsupported NSConcreteValue type in NSKeyedArchiver data, please report.")
         return None
 
     def _process_ns_list_item(self, _class_name, d, objects_list, parents):
@@ -179,7 +178,7 @@ class NSKeyedArchiveParser(object):
 
     def _process_default(self, class_name, d, _objects_list, _parents):
         logger.warning(
-            "Unknown NSKeyedArchiver class name {} with data ({}) in '{}', please report.", class_name, d, self.fullpath)
+            f"Unknown NSKeyedArchiver class name {class_name} with data ({d}) in '{self.fullpath}', please report.")
 
     @classmethod
     def get_processors(cls):
