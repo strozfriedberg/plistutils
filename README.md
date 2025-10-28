@@ -5,7 +5,7 @@
 The `plistutils` library provides a number of convenience functions for dealing with Apple Property List files.
 Our goal is to provide a single, comprehensive Python library for dealing with all aspects of Plist parsing.
 
-plistutils is copyright (c) 2017, Stroz Friedberg, an Aon company.
+plistutils is copyright (c) 2025, LevelBlue.
 
 ## Components and Usage
 
