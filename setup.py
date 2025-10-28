@@ -14,7 +14,7 @@ Apple Property List files. This module is tested with Python 3.5.""",
     url='https://github.com/strozfriedberg/plistutils',
 
     # Author details
-    author='Stroz Friedberg, an Aon company',
+    author='LevelBlue',
 
     license='BSD 3-clause "New" or "Revised" License',
 
