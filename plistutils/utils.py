@@ -74,7 +74,9 @@ def parse_timestamp(qword, resolution, epoch_shift, mode=decimal.ROUND_HALF_EVEN
     total_microseconds = (decimal.Decimal(shifted * datetime_resolution) / decimal.Decimal(resolution)).quantize(1, mode)
 
     # convert to datetime
-    return datetime.utcfromtimestamp(total_microseconds // datetime_resolution).replace(microsecond=total_microseconds % datetime_resolution)
+    timestamp = int(total_microseconds // datetime_resolution)
+    microsecond = int(total_microseconds % datetime_resolution)
+    return datetime.utcfromtimestamp(timestamp).replace(microsecond=microsecond)
 
 
 def case_insensitive_dict_get(d, key, default=None):
