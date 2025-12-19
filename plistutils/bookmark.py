@@ -68,6 +68,7 @@ class BookmarkParser(object):
         0xf080: ([BYTES_TYPE], 'sandbox_rw_extension'),  # semi-colon separated values string (from byte-array)
         0xf081: ([BYTES_TYPE], 'sandbox_ro_extension'),  # semi-colon separated values string (from byte-array)
         0xfe00: ([BYTES_TYPE], 'alias_data'),  # Alias byte array
+        0xf000f: ([BOOL_TYPE], None),  # bool (existence indicates true)
         0x800000d0: ([NUMBER_TYPE], None),  # 'nsurl_document_identifier_key' https://developer.apple.com/reference/foundation/nsurldocumentidentifierkey
         0x80000190: ([NUMBER_TYPE], None),  # 'nsurl_document_identifier_key' https://developer.apple.com/reference/foundation/nsurldocumentidentifierkey
         0x80000194: ([NUMBER_TYPE], None),  # 'nsurl_document_identifier_key' https://developer.apple.com/reference/foundation/nsurldocumentidentifierkey
@@ -75,6 +76,7 @@ class BookmarkParser(object):
         0x800001b0: ([NUMBER_TYPE], None),  # 'nsurl_document_identifier_key' https://developer.apple.com/reference/foundation/nsurldocumentidentifierkey
         0x800001c0: ([NUMBER_TYPE], None),  # 'nsurl_document_identifier_key' https://developer.apple.com/reference/foundation/nsurldocumentidentifierkey
         0x800001d8: ([NUMBER_TYPE], None),  # 'nsurl_document_identifier_key' https://developer.apple.com/reference/foundation/nsurldocumentidentifierkey
+        0x800001e4: ([NUMBER_TYPE], None),  # 'nsurl_document_identifier_key' https://developer.apple.com/reference/foundation/nsurldocumentidentifierkey
         0x80000218: ([NUMBER_TYPE], None),  # 'nsurl_document_identifier_key' https://developer.apple.com/reference/foundation/nsurldocumentidentifierkey
         0x80000278: ([NUMBER_TYPE], None),  # 'nsurl_document_identifier_key' https://developer.apple.com/reference/foundation/nsurldocumentidentifierkey
         0x8000027c: ([NUMBER_TYPE], None),  # 'nsurl_document_identifier_key' https://developer.apple.com/reference/foundation/nsurldocumentidentifierkey
